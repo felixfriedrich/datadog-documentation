@@ -1,47 +1,8 @@
-{{ $dot := . }}
-{{ $data := site.Data.security_monitoring.data }}
-{{ $img_map := $data.image_map }}
-{{ $img_path := "images/integrations_logos/" }}
-{{ $img_url := printf "%s%s" site.Params.img_url $img_path }}
-{{ $source := .source }}
-{{ $scope := .scope | default "" }}
-
-{{ $src_img := $source }}
-{{ $src_link := printf "integrations/%s" $src_img }}
-
-{{ range $key, $value := $img_map }}
-    {{ if intersect $value.source (slice $source $scope) }}
-        {{ if in .source $scope }}
-            {{ $source = $scope }}
-        {{ end }}
-        {{ with index $img_map $key }}
-            {{ if eq .append true }}
-                {{ $src_img = $source }}
-            {{ else }}
-                {{ $src_img = .image }}
-            {{ end }}
-
-            {{ if .link }}
-                {{ $src_link = printf "integrations/%s" .link }}
-            {{ else }}
-                {{ $src_link = printf "integrations/%s" $source }}
-            {{ end }}
-        {{ end }}
-    {{ end }}
-{{ end }}
-
-<!-- try with scope first -->
-{{/*
-{{ $int_logo := partial "integrations-logo.html" (dict "context" $dot.ctx "basename" $scope "variant" "avatar") }}
-{{ if not $int_logo }}
-  <!-- try with source fallback -->
-  {{ $int_logo = partial "integrations-logo.html" (dict "context" $dot.ctx "basename" $source "variant" "avatar") }}
-{{ end }}
-*/}}
-
-{{ $int_logo := "" }}
-{{ if ne $src_img "File Integrity Monitoring" }}
-  {{ $int_logo = partial "integrations-logo.html" (dict "context" $dot.ctx "basename" $src_img "variant" "avatar") }}
-{{ end }}
-
+{{- $dot := . -}}
+{{- $src_img := (.source | lower) -}}
+{{- $src_link := printf "integrations/%s" $src_img -}}
+{{- $int_logo := "" -}}
+{{- if ne $src_img "File Integrity Monitoring" -}}
+  {{- $int_logo = partial "integrations-logo.html" (dict "context" $dot.ctx "basename" $src_img "variant" "avatar") -}}
+{{- end -}}
 {{- return (dict "image" $int_logo "link" ($src_link | absLangURL) "rellink" $src_link ) -}}

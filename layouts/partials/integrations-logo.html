@@ -1,3 +1,31 @@
+<!--
+{{/*
+------------------
+Description:
+------------------
+
+Builds a string to the integration logo.
+:param basename: string of integration name without any variant or extension e.g "aws" or "amazon-ecs"
+:param variant: string of the variant e.g "avatar" or "small" or "large"
+:return: the string to the integration logo image or an empty string on failure
+
+------------------
+Usage:
+------------------
+
+With an exact integration id
+
+{{ $int_logo := partial "integrations-logo.html" (dict "context" $dot "basename" "amazon-alb" "variant" "avatar") }}
+<img src="{{ $int_logo }}" />
+
+With an exact integration alias
+
+{{ $int_logo := partial "integrations-logo.html" (dict "context" $dot "basename" "aws_alb" "variant" "avatar") }}
+<img src="{{ $int_logo }}" />
+
+Both of these should return the same image.
+*/}}
+-->
 {{- $dot := . -}}
 {{- $ctx := .context -}}
 {{- $basename := (lower .basename) -}}
