@@ -34,6 +34,7 @@ Both of these should return the same image.
 {{- $img_url := $ctx.Site.Params.integrations_img_url -}}
 {{- $imagesJSON := getJSON "https://s3.amazonaws.com/origin-static-assets/websites-integrations/images.json" -}}
 {{- $integrationLogosList := index $imagesJSON "integrationLogosList" | default slice -}}
+{{- $integrationAliasList := index $imagesJSON "aliases" | default dict -}}
 {{- $output_image := "" -}}
 {{- $imageExists := false -}}
 
@@ -41,6 +42,16 @@ Both of these should return the same image.
 {{- range $manifestBasename := $integrationLogosList -}}
   {{- if eq $basename $manifestBasename -}}
     {{- $imageExists = true -}}
+  {{- end -}}
+{{- end -}}
+
+<!--{{/* Check to see if we are passing an alias instead */}}-->
+{{- if not $imageExists -}}
+  {{- range $aliasBaseName, $actualImgBaseName := $integrationAliasList -}}
+    {{- if eq $basename $aliasBaseName -}}
+      {{- $imageExists = true -}}
+      {{- $basename = $actualImgBaseName -}}
+    {{- end -}}
   {{- end -}}
 {{- end -}}
 
