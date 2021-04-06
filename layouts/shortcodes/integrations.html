@@ -22,7 +22,7 @@
 <!-- build tiles -->
 {{- $s := newScratch -}}
 {{- range $k, $v := $integration_list -}}
-  {{- $path := (print "integration_" $k) -}}
+  {{- $path := (print $v.File.BaseFileName) -}}
   {{- $s.SetInMap $path "id" $k -}}
   {{- $s.SetInMap $path "name" $v.Params.name -}}
   {{- $s.SetInMap $path "item_class" "" -}}
