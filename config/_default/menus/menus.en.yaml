@@ -3851,7 +3851,8 @@ api:
         - v1
       operationids:
         - ListActiveMetrics
-      unstable: []
+      unstable:
+        - v1
   - name: Monitors
     url: /api/latest/monitors/
     identifier: monitors
