@@ -2399,12 +2399,9 @@ components:
       - GROUP
     HTTPLog:
       description: Structured log message.
-      oneOf:
-      - $ref: '#/components/schemas/HTTPLogItem'
-      - description: List of log items.
-        items:
-          $ref: '#/components/schemas/HTTPLogItem'
-        type: array
+      items:
+        $ref: '#/components/schemas/HTTPLogItem'
+      type: array
     HTTPLogError:
       description: Invalid query performed.
       properties:
@@ -4480,9 +4477,16 @@ components:
       properties:
         series:
           description: A list of time series to submit to Datadog.
+          example:
+          - metric: system.load.1
+            points:
+            - - 1475317847
+              - 0.7
           items:
             $ref: '#/components/schemas/Series'
           type: array
+      required:
+      - series
       type: object
     MetricsQueryMetadata:
       description: Object containing all metric names returned and their associated
@@ -5907,6 +5911,166 @@ components:
             $ref: '#/components/schemas/SLOBulkDeleteError'
           type: array
       type: object
+    SLOCorrection:
+      description: The response object of a list of SLO corrections
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SLOCorrectionResponseAttributes'
+        id:
+          description: The ID of the SLO correction
+          type: string
+        type:
+          $ref: '#/components/schemas/SLOCorrectionType'
+      type: object
+    SLOCorrectionCategory:
+      description: Category the SLO correction belongs to
+      enum:
+      - Scheduled Maintenance
+      - Outside Business Hours
+      - Deployment
+      - Other
+      example: Scheduled Maintenance
+      type: string
+      x-enum-varnames:
+      - SCHEDULED_MAINTENANCE
+      - OUTSIDE_BUSINESS_HOURS
+      - DEPLOYMENT
+      - OTHER
+    SLOCorrectionCreateData:
+      description: The data object associated with the SLO correction to be created
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SLOCorrectionCreateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/SLOCorrectionType'
+      type: object
+    SLOCorrectionCreateRequest:
+      description: An object that defines a correction to be applied to an SLO
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOCorrectionCreateData'
+      type: object
+    SLOCorrectionCreateRequestAttributes:
+      description: The attribute object associated with the SLO correction to be created
+      properties:
+        category:
+          $ref: '#/components/schemas/SLOCorrectionCategory'
+        description:
+          description: Description of the correction being made.
+          type: string
+        end:
+          description: Ending time of the correction in epoch seconds
+          example: 1600000000
+          format: int64
+          type: integer
+        slo_id:
+          description: ID of the SLO that this correction will be applied to
+          example: sloId
+          type: string
+        start:
+          description: Starting time of the correction in epoch seconds
+          example: 1600000000
+          format: int64
+          type: integer
+        timezone:
+          description: The timezone to display in the UI for the correction times
+            (defaults to "UTC")
+          example: UTC
+          type: string
+      required:
+      - slo_id
+      - start
+      - end
+      - category
+      type: object
+    SLOCorrectionListResponse:
+      description: A list of  SLO correction objects
+      properties:
+        data:
+          description: The list of of SLO corrections objects
+          items:
+            $ref: '#/components/schemas/SLOCorrection'
+          type: array
+      type: object
+    SLOCorrectionResponse:
+      description: The response object of an SLO correction
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOCorrection'
+      type: object
+    SLOCorrectionResponseAttributes:
+      description: The attribute object associated with the SLO correction
+      properties:
+        category:
+          $ref: '#/components/schemas/SLOCorrectionCategory'
+        creator:
+          $ref: '#/components/schemas/Creator'
+        description:
+          description: Description of the correction being made.
+          type: string
+        end:
+          description: Ending time of the correction in epoch seconds
+          format: int64
+          type: integer
+        slo_id:
+          description: ID of the SLO that this correction will be applied to
+          type: string
+        start:
+          description: Starting time of the correction in epoch seconds
+          format: int64
+          type: integer
+        timezone:
+          description: The timezone to display in the UI for the correction times
+            (defaults to "UTC")
+          type: string
+      type: object
+    SLOCorrectionType:
+      default: correction
+      description: SLO correction resource type.
+      enum:
+      - correction
+      example: correction
+      type: string
+      x-enum-varnames:
+      - CORRECTION
+    SLOCorrectionUpdateData:
+      description: The data object associated with the SLO correction to be updated
+      properties:
+        attributes:
+          $ref: '#/components/schemas/SLOCorrectionUpdateRequestAttributes'
+        type:
+          $ref: '#/components/schemas/SLOCorrectionType'
+      type: object
+    SLOCorrectionUpdateRequest:
+      description: An object that defines a correction to be applied to an SLO
+      properties:
+        data:
+          $ref: '#/components/schemas/SLOCorrectionUpdateData'
+      type: object
+    SLOCorrectionUpdateRequestAttributes:
+      description: The attribute object associated with the SLO correction to be updated
+      properties:
+        category:
+          $ref: '#/components/schemas/SLOCorrectionCategory'
+        description:
+          description: Description of the correction being made.
+          type: string
+        end:
+          description: Ending time of the correction in epoch seconds
+          example: 1600000000
+          format: int64
+          type: integer
+        start:
+          description: Starting time of the correction in epoch seconds
+          example: 1600000000
+          format: int64
+          type: integer
+        timezone:
+          description: The timezone to display in the UI for the correction times
+            (defaults to "UTC")
+          example: UTC
+          type: string
+      type: object
     SLODeleteResponse:
       description: A response list of all service level objective deleted.
       properties:
@@ -6759,7 +6923,7 @@ components:
           type: array
         name:
           description: The name of the service level objective object.
-          example: ''
+          example: Custom Metric SLO
           type: string
         query:
           $ref: '#/components/schemas/ServiceLevelObjectiveQuery'
@@ -6781,7 +6945,12 @@ components:
             service level
 
             objective object.'
-          example: []
+          example:
+          - target: 95
+            timeframe: 7d
+          - target: 95
+            timeframe: 30d
+            warning: 97
           items:
             $ref: '#/components/schemas/SLOThreshold'
           type: array
@@ -6802,11 +6971,11 @@ components:
       properties:
         denominator:
           description: A Datadog metric query for total (valid) events.
-          example: ''
+          example: sum:my.custom.metric{*}.as_count()
           type: string
         numerator:
           description: A Datadog metric query for good events.
-          example: ''
+          example: sum:my.custom.metric{type:good}.as_count()
           type: string
       required:
       - numerator
@@ -6818,16 +6987,6 @@ components:
 
         for one or more timeframes, and metadata (`name`, `description`, `tags`, etc.).'
       properties:
-        created_at:
-          description: 'Creation timestamp (UNIX time in seconds)
-
-
-            Always included in service level objective responses.'
-          format: int64
-          readOnly: true
-          type: integer
-        creator:
-          $ref: '#/components/schemas/Creator'
         description:
           description: 'A user-defined description of the service level objective.
 
@@ -6856,21 +7015,6 @@ components:
             description: A group name, for instance `env:prod`.
             type: string
           type: array
-        id:
-          description: 'A unique identifier for the service level objective object.
-
-
-            Always included in service level objective responses.'
-          readOnly: true
-          type: string
-        modified_at:
-          description: 'Modification timestamp (UNIX time in seconds)
-
-
-            Always included in service level objective responses.'
-          format: int64
-          readOnly: true
-          type: integer
         monitor_ids:
           description: 'A list of monitor ids that defines the scope of a monitor
             service level
@@ -6883,7 +7027,7 @@ components:
           type: array
         name:
           description: The name of the service level objective object.
-          example: ''
+          example: Custom Metric SLO
           type: string
         query:
           $ref: '#/components/schemas/ServiceLevelObjectiveQuery'
@@ -6905,7 +7049,12 @@ components:
             service level
 
             objective object.'
-          example: []
+          example:
+          - target: 95
+            timeframe: 7d
+          - target: 95
+            timeframe: 30d
+            warning: 97
           items:
             $ref: '#/components/schemas/SLOThreshold'
           type: array
@@ -12854,7 +13003,7 @@ paths:
                 $ref: '#/components/schemas/APIErrorResponse'
           description: Payload too large
       security:
-      - apiKeyAuthQuery: []
+      - apiKeyAuth: []
       summary: Submit a Service Check
       tags:
       - Service Checks
@@ -14003,7 +14152,7 @@ paths:
                 $ref: '#/components/schemas/APIErrorResponse'
           description: Bad Request
       security:
-      - apiKeyAuthQuery: []
+      - apiKeyAuth: []
       summary: Post an event
       tags:
       - Events
@@ -18447,7 +18596,7 @@ paths:
                 $ref: '#/components/schemas/APIErrorResponse'
           description: Payload too large
       security:
-      - apiKeyAuthQuery: []
+      - apiKeyAuth: []
       summary: Submit metrics
       tags:
       - Metrics
@@ -18799,6 +18948,205 @@ paths:
       - Service Level Objectives
       x-undo:
         type: safe
+  /api/v1/slo/correction:
+    get:
+      description: Get all Service Level Objective corrections
+      operationId: ListSLOCorrection
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOCorrectionListResponse'
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+      summary: Get all SLO corrections
+      tags:
+      - Service Level Objective Corrections
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+    post:
+      description: Create an SLO Correction
+      operationId: CreateSLOCorrection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SLOCorrectionCreateRequest'
+        description: Create an SLO Correction
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOCorrectionResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+      summary: Create an SLO correction
+      tags:
+      - Service Level Objective Corrections
+      x-codegen-request-body-name: body
+      x-given:
+        correction:
+          parameters:
+          - name: body
+            value: "{\n  \"data\": {\n    \"id\": \"1\",\n    \"attributes\": {\n\
+              \      \"slo_id\": \"{{ slo.data[0].id }}\",\n      \"start\": {{ now_ts\
+              \ }},\n      \"end\": {{ hour_later_ts }},\n      \"category\": \"Other\"\
+              ,\n      \"timezone\": \"UTC\",\n      \"description\": \"Test Correction\"\
+              \n     },\n     \"type\": \"correction\"\n  }\n}"
+          step: there is a valid "correction" for "slo"
+      x-undo:
+        operationId: DeleteSLOCorrection
+        parameters:
+        - name: slo_correction_id
+          source: data.id
+        type: unsafe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+  /api/v1/slo/correction/{slo_correction_id}:
+    delete:
+      description: Permanently delete the specified SLO correction object
+      operationId: DeleteSLOCorrection
+      parameters:
+      - description: The ID of the SLO correction object
+        in: path
+        name: slo_correction_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '204':
+          description: OK
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not found
+      summary: Delete an SLO correction
+      tags:
+      - Service Level Objective Corrections
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+    get:
+      description: Get an SLO correction
+      operationId: GetSLOCorrection
+      parameters:
+      - description: The ID of the SLO correction object
+        in: path
+        name: slo_correction_id
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOCorrectionResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+      summary: Get an SLO correction for an SLO
+      tags:
+      - Service Level Objective Corrections
+      x-undo:
+        type: safe
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
+    patch:
+      description: Update the specified SLO correction object object
+      operationId: UpdateSLOCorrection
+      parameters:
+      - description: The ID of the SLO correction object
+        in: path
+        name: slo_correction_id
+        required: true
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SLOCorrectionUpdateRequest'
+        description: The edited SLO correction object.
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SLOCorrectionResponse'
+          description: OK
+        '400':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Bad Request
+        '403':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Forbidden
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/APIErrorResponse'
+          description: Not Found
+      summary: Update an SLO correction
+      tags:
+      - Service Level Objective Corrections
+      x-codegen-request-body-name: body
+      x-undo:
+        type: idempotent
+      x-unstable: '**Note**: This endpoint is in public beta.
+
+        If you have any feedback, contact [Datadog support](https://docs.datadoghq.com/help/).'
   /api/v1/slo/{slo_id}:
     delete:
       description: 'Permanently delete the specified service level objective object.
@@ -22023,7 +22371,7 @@ paths:
               schema:
                 type: object
           description: Response from server (always 200 empty JSON).
-        default:
+        '400':
           content:
             application/json:
               schema:
@@ -22337,6 +22685,12 @@ tags:
   externalDocs:
     url: https://docs.datadoghq.com/tracing/visualization/services_map/
   name: Service Dependencies
+- description: "SLO Status Corrections allow you to prevent specific time periods\
+    \ from negatively impacting\nyour SLO\u2019s status and error budget. You can\
+    \ use Status Corrections for various purposes, such\nas removing planned maintenance\
+    \ windows, non-business hours, or other time periods that do\nnot correspond to\
+    \ genuine issues."
+  name: Service Level Objective Corrections
 - description: '[Service Level Objectives](https://docs.datadoghq.com/monitors/service_level_objectives/#configuration)
 
     (or SLOs) are a key part of the site reliability engineering toolkit.
