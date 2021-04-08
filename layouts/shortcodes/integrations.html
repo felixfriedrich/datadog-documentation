@@ -5,7 +5,11 @@
 {{ if eq site.Language.Lang "ja"}}
     {{ $kind = "インテグレーション"}}
 {{ end }}
-{{ $integration_list := sort (where (where (where site.Pages "Params.kind" "=" $kind) ".Params.beta" "!=" "true") ".Params.is_public" "=" true) ".File.BaseFileName" }}
+{{ $integration_list := (where site.Pages "Params.kind" "=" $kind) }}
+{{ $integration_list := $integration_list | intersect (where $integration_list ".Params.beta" "!=" true) }}
+{{ $integration_list := $integration_list | intersect (where $integration_list ".Params.is_public" "=" true) }}
+{{ $integration_list := $integration_list | intersect (where $integration_list ".Params.integration_id" "!=" "datadog-agent") }}
+{{ $integration_list := sort $integration_list ".File.BaseFileName" }}
 
 <!-- build filters -->
 {{ $.Scratch.Set "filters" (slice)}}
